@@ -12,7 +12,7 @@
 
   <artilce>
     <header>
-      <h1>ЯНДЕКС.ПОЧТА: КАК МЫ ИЗМЕРЯЕМ СКОРОСТЬ ЗАГРУЗКИ И УЛУЧШАЕМ ЕЁ</h1>
+      <h1><em>ЯНДЕКС.ПОЧТА</em>: КАК МЫ ИЗМЕРЯЕМ СКОРОСТЬ ЗАГРУЗКИ И УЛУЧШАЕМ ЕЁ</h1>
     </header>
 
     <p>
@@ -65,21 +65,18 @@
         </p>
 
         <p>
-          APDEX – метрика, которая сразу говорит: хорошо или плохо. Метрика<br>
+          <dfn><abbr title="Application Performance Index">APDEX</abbr></dfn> – метрика, которая сразу говорит: хорошо или плохо. Метрика<br>
           работает очень просто. Мы выбираем временной интервал [0; t], такой, что если<br>
           время показа страницы попало в него, то пользователь счастлив. Берем еще один<br>
           интервал, (t; 4t] (в четыре раза больше первого), и считаем, что если страница<br>
           показана за это время, то пользователь в целом удовлетворен скоростью работы,<br>
           но уже не настолько счастлив. И применяем формулу:<br>
           <p>
-            (кол-во счастливых пользователей + кол-во удовлетворенных / 2) / (кол-во всех). <br>
-            Получается значение от нуля до единицы, которое, видимо, лучше всего показывает, <br>
+            (кол-во счастливых пользователей + кол-во удовлетворенных / 2) / (кол-во всех).<br>
+            Получается значение от нуля до единицы, которое, видимо, лучше всего показывает,<br>
             хорошо или плохо работает почта.
           </p>
         </p>
-
-
-
       </article>
 
       <article>
@@ -104,7 +101,7 @@
           а все вычисления производятся в конце:
         </p>
 
-        <code>var totalTime = this.timings['look-ma-finish'] - this.timings['look-ma-im-start'];</code>
+        <code><var>var totalTime</var> = this.timings['look-ma-finish'] - this.timings['look-ma-im-start'];</code>
 
         <p>И на сервер прилетают подобные записи:</p>
 
@@ -126,61 +123,214 @@
         </ul>
 
         <p>
-          Мы подумали: «А что если хранить где-то старую версию файлов, а при выходе новой<br>
-          передавать только diff между ней и той, которая сохранена у пользователя?»<br>
+          Мы подумали: <q>А что если хранить где-то старую версию файлов, а при выходе новой<br>
+          передавать только diff между ней и той, которая сохранена у пользователя?</q><br>
           В браузере же останется просто наложить патч на клиенте.</br>
         </p>
 
         <p>
-          На самое деле эта идея не нова. Уже существуют стандарты для HTTP — например,<br>
-          RFC 3229 «Delta encoding in HTTP» и «Google SDHC», — но по разным причинам они<br>
+          На самое деле эта идея не нова. Уже существуют стандарты для <abbr title="HyperText Transfer Protocol">HTTP</abbr> — например,<br>
+          <abbr title="Request for Comments">RFC</abbr> 3229 «Delta encoding in HTTP» и «Google SDHC», — но по разным причинам они<br>
           не получили должного распространения в браузерах и на серверах.
         </p>
 
         <p>
-          Мы же решили сделать свой аналог на JS. Чтобы реализовать этот метод обновления,<br>
-          начали искать реализации diff на JS. На популярных хостингах кода нашли<br>
+          Мы же решили сделать свой аналог на <abbr title="JavaScript">JS</abbr>. Чтобы реализовать этот метод обновления,<br>
+          начали искать реализации diff на <abbr title="JavaScript">JS</abbr>. На популярных хостингах кода нашли<br>
           библиотеки:
           <div>
-            - VCDiff<br>
+            - <abbr title="Generic Differencing and Compression Data Format">VCDiff</abbr><br>
             - google-diff-patch-match
           </div>
         </p>
 
         <p>Для окончательного выбора библиотеки нам нужно сравнить:</p>
-        <table>
-          <tr> <!-- first row. -->
-            <td>Библиотека</td>
-            <td>|</td>
-            <td>IE 9</td>
-            <td>|</td>
-            <td>Opera 12</td>
-          </tr>
-          <tr> <!-- second row. -->
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr> <!-- third row. -->
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr> <!-- fourth row. -->
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
+        <table border="1">
+          <thead> <!-- first row. -->
+            <th>Библиотека</th>
+            <th>IE 9</th>
+            <th>Opera 12</th>
+          </thead>
+          <tbody>
+            <tr> <!-- second row. -->
+              <td>----------</td>
+              <td>----</td>
+              <td>----------</td>
+            </tr>
+            <tr> <!-- third row. -->
+              <td>vcdiff</td>
+              <td>8</td>
+              <td>5</td>
+            </tr>
+            <tr> <!-- fourth row. -->
+              <td>google diff</td>
+              <td>1363</td>
+              <td>76</td>
+            </tr>
+          </tbody>
         </table>
 
+        <p>
+          После того как мы определились с библиотекой для диффа, нужно определиться с тем,<br>
+          где и как хранить статику на клиенте.
+        </p>
+
+        <p>Формат файла с патчами для проекта выглядит так:</p>
+        <pre>
+          <code>
+[
+    {
+        "k": "jane.css",
+        "p": [patch],
+        "s": 4554
+    },
+    {
+        "k": "jane.css",
+        "p": [patch],
+        "s": 4554
+    }
+]
+          </code>
+        </pre>
+
+        <p>
+          То есть это обычный массив из объектов. Каждый объект — отдельный ресурс. У<br>
+          каждого объекта есть три свойства. k — названия ключа в localStorage для этого<br>
+          ресурса. p — патч для ресурса, который сгенерировал vcdiff. s — чексумма для<br>
+          ресурса актуальной версии, чтобы потом можно было проверить правильность<br>
+          наложения патча на клиенте. Чексумма вычисляется по алгоритму Флетчера.          
+        </p>
+
+        <p>
+          <dl><dfn><strong><dt>Алгоритм Бройдена — Флетчера — Гольдфарба — Шанно (BFGS)</dt></strong></dfn><br>
+          <dd>— итерационный метод численной оптимизации, предназначенный для<br>
+          нахождения локального максимума/минимума нелинейного функционала<br>
+          без ограничений.</dd></dl><br>
+        </p>
+
+        <!--ALGORITHM -->
+        <h3>Псевдокод алгоритма:</h3>
+        <p>
+          <pre>
+              Дано <i>&epsilon;</i>, <i>x<sub>0</sub></i>
+              Инициализировать <i>H<sub>0</sub></i>
+              <i>k</i> = <i>0</i>
+              <strong>while</strong> ||<i>&nabla;&fnof;<sub>k</sub></i>|| > <i>&epsilon;</i>
+                  Найти направление <i>p<sub>k</sub></i> = <i>-C<sub>k</sub>&nabla;&fnof;<sub>k</sub></i>
+                  Вычислить <i>x<sub>k+1</sub> = x<sub>k</sub> + &alpha;<sub>k</sub>p<sub>k</sub></i>, <i>&alpha;<sub>k</sub></i> удовлитворяет условиям Вольфе
+                  Обозначить <i>s<sub>k</sub></i> = <i>x<sub>k+1</sub> - x<sub>k</sub></i> и <i>y<sub>k+1</sub></i> = <i>&nabla;&fnof;<sub>k+1</sub></i> - <i>&nabla;&fnof;<sub>k</sub></i>
+                  Вычислить <i>C<sub>k+1</sub></i>
+                  <i>k = k + 1</i>
+              <strong>end</strong>
+          </pre>
+      </p>
+
+        <p>Почему именно алгоритм Флетчера, а не другие популярные алгоритмы вроде:</p>
+        <dl>
+          <dt><dfn><abbr title="Циклический избыточный код">CRC16/32</abbr></dfn></dt>
+          <dd> - алгоритм нахождения контрольной суммы, предназначенный для проверки целостности данных</dd>
+          <dt><dfn><abbr title="Message Digest 5">md5</abbr></dfn></dt>
+           <dd> - 128-битный алгоритм хеширования. Предназначен для создания «отпечатков»<br>
+            или дайджестов сообщения произвольной длины и последующей проверки
+            их подлинности.</dd>
+        </dl>
+        <p>Потому что он быстрый, компактный и легок в реализации.</p>
+      </article>
+
+      <article>
+        <header>
+          <h3>Итог</h3>
+        </header>
+
+        <p>Фактически мы экономим 80-90% трафика. Размер загружаемой статитки в байтах:</p>
+        <table border="1">
+          <thead>
+            <th>Релиз</th>
+            <th>С патчем</th>
+            <th>Без патча</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>7.7.20</td>
+              <td>397</td>
+              <td>174 549</td>
+            </tr>
+            <tr>
+              <td>7.7.21</td>
+              <td>383</td>
+              <td>53 995</td>
+            </tr>
+            <tr>
+              <td>7.7.22</td>
+              <td>483</td>
+              <td>3 995</td>
+            </tr>
+          </tbody>
+        </table>
       </article>
     </section>
 
     <footer>
-
+      <small>
+        <p>Автор: @doochik</p>
+        <p>С++ разработик</p>
+        <address>Электронная почта: doochik@yandex-team.ru</address>
+        <p>Компания: Яндекс</p>
+      </small>
     </footer>
   </artilce>
 
+  <section>
+    <header>
+      <h2>Комментарии (3):</h2>
+    </header>
 
+    <article>
+      <header>
+        <h3>- Mogaika <address style="display: inline;"><a href="mailto:mogaika@yandex-team.ru">(mogaika@yandex-team.ru)</a></address> <time datetime="2014-11-30 17:05">30 ноября 2014 в 17:05</time></h3>
+      </header>
+
+      <p>А можете привести сравнение, на сколько быстрее грузится lite версия?</p>
+    </article>
+
+    <article>
+      <header>
+        <h3>- JIguse <address style="display: inline;"><a href="mailto:mrawesome@yandex.ru">(mrawesome@yandex.ru)</a></address> <time datetime="2014-11-29 21:30">29 ноября 2014 в 21:30</time></h3>
+      </header>
+
+      <p>
+        Спасибо за статью, познавательно. Здорово, что Яндекс делится некоторыми<br>
+        подробностями о внутренней работе сервисов.
+      </p>
+    </article>
+    
+    <article>
+      <header>
+        <h3>- Brister <address style="display: inline;"><a href="mailto:brist89@yandex-team.ru">(brist89@yandex-team.ru)</a></address> <time datetime="2014-11-24 13:13">24 ноября 2014 в 13:13</time></h3>
+      </header>
+
+      <p>
+        (кол-во счастливых пользователей + кол-во удовлетворенных / 2) / (кол-во всех).<br>
+        Получается значение от нуля до единицы, которое, видимо, лучше всего показывает,<br>
+        хорошо или плохо работает почта.
+      </p>
+      <p>наверное все-таки от 0.5 до 1</p>
+    </article>
+
+    <article>
+      <header>
+        <h3>- alexeimois <address style="display: inline;"><a href="mailto:test@yandex.ru">(test@yandex.ru)</a></address> <time datetime="2014-11-22 17:35">22 ноября 2014 в 17:35</time></h3>
+      </header>
+
+      <p>
+        Мы измеряем скорость загsрузки с помощью Яндекс.Метрики:<br>
+        <a href="help.yandex.ru/metrika/reports/monitoring_timing.xml">help.yandex.ru/metrika/reports/monitoring_timing.xml</a>
+      </p>
+    </article>
+  </section>
+
+  <footer>
+    <address>&copy; Яндекс, help@yandex.ru, Хохрякова, 10</address>
+  </footer>
 </body>
 </html>
